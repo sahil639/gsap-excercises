@@ -122,7 +122,7 @@ export default function Sections() {
         <div className="showcase-inner">
           <div className="showcase-card showcase-card--dark" />
           <div className="showcase-card showcase-card--blue">
-            <img src="/images/dashboard.png" alt="Analytics Dashboard" className="showcase-dashboard" />
+            <img src="/images/measured/dashboard.png" alt="Analytics Dashboard" className="showcase-dashboard" />
             <span className="showcase-label">Measured.site</span>
           </div>
         </div>
