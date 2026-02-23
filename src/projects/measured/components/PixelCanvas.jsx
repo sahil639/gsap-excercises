@@ -35,9 +35,16 @@ const fragmentShader = `
     vec2 gridId = floor(pixelCoord / gridSpacing);
     float dist = length(pixelCoord - gridPos);
 
-    // Background gradient: deep blue to slightly lighter blue
-    vec3 bgTop = vec3(0.08, 0.12, 0.75);
-    vec3 bgBottom = vec3(0.22, 0.28, 0.88);
+    /* =============================================
+     * CANVAS BACKGROUND GRADIENT
+     * ---------------------------------------------
+     * bgTop   = top of canvas    (dark blue)
+     * bgBottom = bottom of canvas (white)
+     * Change these vec3 RGB values (0.0–1.0) to
+     * adjust the gradient colors.
+     * ============================================= */
+    vec3 bgTop = vec3(0.06, 0.10, 0.55);    // dark blue
+    vec3 bgBottom = vec3(1.0, 1.0, 1.0);    // white
     vec3 bg = mix(bgTop, bgBottom, uv.y);
 
     // Base dot visibility with subtle wave animation

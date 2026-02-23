@@ -13,30 +13,97 @@
   --muted-light: rgba(0, 0, 0, 0.3);
 }
 
+/* --- Smooth global animation ---
+ * All interactive elements get eased transitions */
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
 code {
   font-family: var(--font);
   font-style: italic;
 }
 
-/* --- Navigation --- */
-.nav {
+/* ================================================
+ * HUB BACK BUTTON — Circular glassmorphism
+ * Fixed bottom-right, Home icon + "Hub" label
+ * ================================================ */
+.hub-button {
   position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
+  /* Glassmorphism */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  color: var(--black);
+  text-decoration: none;
+  cursor: pointer;
+  /* Smooth expand on hover */
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.3s ease,
+              box-shadow 0.3s ease,
+              transform 0.2s ease;
+}
+
+.hub-button:hover {
+  width: 110px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+}
+
+.hub-button:active {
+  transform: translateY(0) scale(0.96);
+  transition: transform 0.1s ease;
+}
+
+.hub-button__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease,
+              margin-left 0.35s ease;
+  margin-left: 0;
+}
+
+.hub-button:hover .hub-button__label {
+  max-width: 50px;
+  opacity: 1;
+  margin-left: 6px;
+}
+
+/* --- Navigation ---
+ * Nav is inside the hero section (not fixed to viewport).
+ * Aligned to the right side, alongside the "Join" button. */
+.nav {
+  position: absolute;
   top: 0;
-  left: 0;
   right: 0;
   z-index: 100;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   padding: 1.2rem 3rem;
   background: transparent;
-}
-
-.nav-brand {
-  font-size: 0.85rem;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  color: var(--black);
-  margin-right: 4rem;
 }
 
 .nav-links {
@@ -77,7 +144,7 @@ code {
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible; /* Allow 3D object to extend beyond hero bounds */
   background: var(--white);
 }
 
@@ -122,7 +189,10 @@ code {
   height: 100%;
 }
 
-/* --- Floating 3D Object --- */
+/* --- Floating 3D Object ---
+ * Position is controlled via JS (scroll-based animation).
+ * Default: top-left corner. At footer: centered between "Get" / "Measured."
+ * transition is handled by lerp in the animation loop, not CSS. */
 .floating-object {
   position: fixed;
   top: -6vw;
@@ -135,6 +205,7 @@ code {
   max-height: 420px;
   z-index: 50;
   pointer-events: none;
+  will-change: top, left; /* GPU hint for smooth position animation */
 }
 
 .floating-object canvas {
@@ -570,10 +641,8 @@ code {
   }
 
   .floating-object {
-    width: 22vw;
-    height: 22vw;
-    top: -4vw;
-    left: -4vw;
+    width: 24vw;
+    height: 24vw;
   }
 
   .leaderboard-inner {
@@ -649,10 +718,15 @@ code {
   }
 
   .floating-object {
-    width: 35vw;
-    height: 35vw;
-    top: -5vw;
-    left: -5vw;
+    width: 40vw;
+    height: 40vw;
+  }
+
+  .hub-button {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 46px;
+    height: 46px;
   }
 
   .leaderboard {

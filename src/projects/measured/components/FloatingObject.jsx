@@ -92,12 +92,62 @@ export default function FloatingObject() {
 
     window.addEventListener('mousemove', handleMouseMove);
 
+    /* ================================================
+     * SCROLL-BASED ROTATION & POSITION ANIMATION
+     * ------------------------------------------------
+     * - scrollProgress (0→1) drives progressive rotation
+     * - When the footer-tagline is in view, the object
+     *   smoothly animates from top-left to the center
+     *   of the page, between "Get" and "Measured."
+     * ================================================ */
+    let scrollProgress = 0;
+
+    // Current animated position (lerped for smoothness)
+    const currentPos = { top: -6, left: -6 }; // vw units (matches CSS default)
+    const targetPos = { top: -6, left: -6 };
+    let isAtFooter = false;
+
+    const handleScroll = () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      scrollProgress = docHeight > 0 ? window.scrollY / docHeight : 0;
+
+      // Check if footer tagline is visible
+      const tagline = document.querySelector('.footer-tagline');
+      if (tagline) {
+        const rect = tagline.getBoundingClientRect();
+        const viewH = window.innerHeight;
+
+        // Trigger when footer-tagline enters bottom 60% of viewport
+        const footerVisible = rect.top < viewH * 0.7 && rect.bottom > 0;
+
+        if (footerVisible) {
+          isAtFooter = true;
+          // Position: center of viewport, accounting for object container size
+          const containerW = container.clientWidth;
+          const containerH = container.clientHeight;
+          // Center between "Get" and "Measured." — use tagline center as reference
+          const tagCenterX = rect.left + rect.width / 2;
+          const tagCenterY = rect.top + rect.height / 2;
+          targetPos.top = tagCenterY - containerH / 2;
+          targetPos.left = tagCenterX - containerW / 2;
+        } else {
+          isAtFooter = false;
+          // Default top-left position (in pixels, converting from vw)
+          targetPos.top = -6 * window.innerWidth / 100;
+          targetPos.left = -6 * window.innerWidth / 100;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     const handleResize = () => {
       const w = container.clientWidth;
       const h = container.clientHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      handleScroll(); // Recalculate positions on resize
     };
     window.addEventListener('resize', handleResize);
 
@@ -108,21 +158,39 @@ export default function FloatingObject() {
       animId = requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
 
-      // Smooth lerp rotation following cursor
+      // Smooth lerp rotation following cursor + scroll-based progressive rotation
+      // scrollProgress adds up to 2 full rotations (4π) across the page
+      const scrollRotationOffset = scrollProgress * Math.PI * 4;
+
       currentRotation.x += (targetRotation.x - currentRotation.x) * 0.04;
       currentRotation.y += (targetRotation.y - currentRotation.y) * 0.04;
 
-      mesh.rotation.x = currentRotation.x;
-      mesh.rotation.y = currentRotation.y + t * 0.15;
-      mesh.rotation.z = -0.2 + Math.sin(t * 0.5) * 0.05;
+      mesh.rotation.x = currentRotation.x + scrollRotationOffset * 0.3;
+      mesh.rotation.y = currentRotation.y + t * 0.15 + scrollRotationOffset * 0.5;
+      mesh.rotation.z = -0.2 + Math.sin(t * 0.5) * 0.05 + scrollRotationOffset * 0.2;
+
+      // Smooth lerp for container position (pixel values)
+      // Use a slightly faster lerp when moving to footer for responsive feel
+      const lerpSpeed = isAtFooter ? 0.06 : 0.04;
+      currentPos.top += (targetPos.top - currentPos.top) * lerpSpeed;
+      currentPos.left += (targetPos.left - currentPos.left) * lerpSpeed;
+
+      container.style.top = currentPos.top + 'px';
+      container.style.left = currentPos.left + 'px';
 
       renderer.render(scene, camera);
     };
+
+    // Initialize position in pixels
+    currentPos.top = -6 * window.innerWidth / 100;
+    currentPos.left = -6 * window.innerWidth / 100;
+    handleScroll();
     animate();
 
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
       material.dispose();

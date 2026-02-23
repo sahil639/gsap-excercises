@@ -9,9 +9,10 @@ import './style.css';
 export default function MeasuredProject() {
   return (
     <>
-      <Navbar />
       <FloatingObject />
+      {/* Navbar is inside the hero section, aligned right */}
       <section className="hero" id="hero">
+        <Navbar />
         <HeroText />
         <div className="hero-canvas-wrap">
           <PixelCanvas />
